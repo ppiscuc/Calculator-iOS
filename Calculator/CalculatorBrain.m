@@ -83,9 +83,12 @@
         else {
             return 0; //ca asa vrem noi
         }
+    } else if ([operation isEqualToString:@"pi"])
+    {
+        // nu iau nimic de pe stiva
+        return M_PI;
     }
-    
-    [self pushOperand:result ];
+    //[self pushOperand:result ];
     // punem inapoi pe stiva
     [ self pushOperand:result ];
     

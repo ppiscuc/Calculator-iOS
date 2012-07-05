@@ -19,6 +19,7 @@
 
 @implementation CalculatorViewController
 @synthesize display = _display;
+@synthesize alldata = _alldata;
 @synthesize userIsInTheMiddleOfEnteringANumber = _userIsInTheMiddleOfEnteringANumber;
 @synthesize brain = _brain;
 
@@ -57,10 +58,12 @@
     //myDisplay.text = newText;
     //totul se reduce la:
     if (self.userIsInTheMiddleOfEnteringANumber) {
-    self.display.text = [ self.display.text stringByAppendingString:digit ];
+        self.display.text = [ self.display.text stringByAppendingString:digit ];
+        self.alldata.text = [ self.alldata.text stringByAppendingString:digit ];
     }
 else {
     self.display.text = digit;
+    self.alldata.text = [ self.alldata.text stringByAppendingString:digit ];
     self.userIsInTheMiddleOfEnteringANumber = YES;
     }
 }
@@ -74,9 +77,18 @@ else {
 - (IBAction)operationPressed:(UIButton *)sender 
 {
     if (self.userIsInTheMiddleOfEnteringANumber) [ self enterPressed ]; //?
-    
-    double result = [ self.brain performOperation:sender.currentTitle ];
-    NSString *resultString = [ NSString stringWithFormat:@"%g", result ];
-    self.display.text = resultString;
+    self.alldata.text = [ self.alldata.text stringByAppendingString:sender.currentTitle ];
+    if (sender.currentTitle != @"C") {
+        double result = [ self.brain performOperation:sender.currentTitle ];
+        NSString *resultString = [ NSString stringWithFormat:@"%g", result ];
+        self.display.text = resultString;
+    }
+    else {
+        self.display.text = [ NSString stringWithFormat:@"%d",0 ];
+    }
+}
+- (void)viewDidUnload {
+    [self setAlldata:nil];
+    [super viewDidUnload];
 }
 @end
