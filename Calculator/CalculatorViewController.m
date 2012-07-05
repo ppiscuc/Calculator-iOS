@@ -65,6 +65,8 @@ else {
     }
 }
 - (IBAction)enterPressed {
+    //NSString *value = self.display.text;
+    //if ( [value isEqualToString:@"."]) value = [ NSString stringWithFormat:@"%d", 10 ]; // daca am punct, pun 10
     [ self.brain pushOperand:[self.display.text doubleValue ]];
     // logic ca n umai sunt in mijlocul introducerii unui numar
     self.userIsInTheMiddleOfEnteringANumber = NO;

@@ -63,6 +63,26 @@
     {
         double divide = [ self popOperand ];
         if (divide) return [self popOperand ] / divide; // evitam impartirea la 0
+    } 
+    else if ([operation isEqualToString:@"sin"])
+    {
+        return sin([self popOperand ]);
+        
+    }
+    else if ([operation isEqualToString:@"cons"])
+    {
+        return cos([self popOperand ]);
+        
+    }
+    else if ([operation isEqualToString:@"sqrt"])
+    {
+        double numb = [ self popOperand ];
+        if (numb > 0) {
+            return sqrt(numb);
+        }
+        else {
+            return 0; //ca asa vrem noi
+        }
     }
     
     [self pushOperand:result ];
