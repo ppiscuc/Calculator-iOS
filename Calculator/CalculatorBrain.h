@@ -10,13 +10,19 @@
 
 @interface CalculatorBrain : NSObject
 
-- (void)pushOperand:(double)operand;
+- (void)pushOperand:(NSString*)operand;//primim numere si variabile
 - (double)performOperation:(NSString*) operation;
+- (void)pushVariable:(NSString *) variable;
+- (void)pushOperation:(NSString *)operation;
 
-@property (readonly) id program;
+@property (readonly) id program;// ramane la fel	
 
-+ (double)runProgram:(id)program; // nu schimba implementarea
++ (double)runProgram:(	id)program; 
 
-+ (NSString *)descriptionOfProgram:(id)program; // nu schimba implementarea
++ (double)runProgram:(id)program usingVariableValues:(NSDictionary *)variableValues;
+
++ (NSString *)descriptionOfProgram:(id)program; 
+
++ (NSSet *)variablesUsedInProgram:(id)program;
 
 @end
