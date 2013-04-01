@@ -31,22 +31,23 @@
     _programStack = programStack;
 }
 //------------------
-- (void)pushOperand:(NSString*)operand{
+- (void)pushOperand:(double)operand{
     NSLog(@"Digit pressed = %@", operand);
     
+    [self.programStack addObject:[NSNumber numberWithDouble:operand]];
     // checking to see if push a variable or a number
-    NSNumber *convertedNumber = [NSNumber numberWithInt:[operand intValue]];
-    NSLog(@"converted value: %@", convertedNumber);
-    if ([convertedNumber intValue] != 0) {
+    //NSNumber *convertedNumber = [NSNumber numberWithInt:[operand intValue]];
+    //NSLog(@"converted value: %@", convertedNumber);
+    //if ([convertedNumber intValue] != 0) {
             //hit a digit
-        NSLog(@"hit a digit: %@", convertedNumber);
-            [ self.programStack addObject:convertedNumber ];
-        }
-        else {
+      //  NSLog(@"hit a digit: %@", convertedNumber);
+        //    [ self.programStack addObject:convertedNumber ];
+       // }
+       // else {
             // hit a variable
-            NSLog(@"hit a variable: %@", operand);
-        [ self.programStack addObject:operand ]; //nu e bun cu operand, ca nu e obiect, asa ca tre sa ii fac un wrapper // trebuie sa ma asigur in getter ca nu fac operatii pe operandStack cand e nil, ca altfel nu se intampla nimica
-    }
+       //     NSLog(@"hit a variable: %@", operand);
+       // [ self.programStack addObject:operand ]; //nu e bun cu operand, ca nu e obiect, asa ca tre sa ii fac un wrapper // trebuie sa ma asigur in getter ca nu fac operatii pe operandStack cand e nil, ca altfel nu se intampla nimica
+   // }
 }
 //-----------------
 - (void)pushVariable:(NSString *)variable{
@@ -63,9 +64,99 @@
 + (NSString *)descriptionOfProgram:(id)program
 {
     //human readable description of program pana intr-un anumit moment
-    return @"not implemented";
+    if (![program isKindOfClass:[NSArray class]]) return 0;
+    
+    NSMutableArray *stack = [ program mutableCopy];
+    NSMutableArray *expressionArray = [ NSMutableArray array];
+    
+    //recursion
+    while (stack.count > 0) {
+        [expressionArray addObject:[self deBracket:[self descriptionOfTopOfStack:stack]]];
+    }
+    return [expressionArray componentsJoinedByString:@","];
+    
 }
 //----------------
+// helper function
++ (NSString *)deBracket:(NSString *)expression {
+    NSString *description = expression;
+    
+    //daca exista deja niste parateze, eliminale si returneaza
+    if ([expression hasPrefix:@"("] && [expression hasSuffix:@")"]) {
+        description = [ description substringFromIndex:1];
+        description = [ description substringToIndex:[description length] - 1];
+    }
+    // sa avem grija ca atunci cand le eliminam sa nu ajungem la cazul
+    // a+b) * (c +d ; daca avem asa ceva, le adaugam inapoi
+    NSRange openBracket = [description rangeOfString:@"("];
+    NSRange closeBracket = [description rangeOfString:@")"];
+    
+    if ( openBracket.location <= closeBracket.location ) return  description;
+    else return expression;
+}
+//--------------------------
++ (BOOL) isNoOperandOrOperation:(NSString *)value {
+    NSSet *operationSet = [NSSet setWithObjects:@"?",nil];
+    return [ operationSet containsObject:value ];
+}
++(BOOL) isOneOperandOperation:(NSString *)value {
+    NSSet *operationSet = [NSSet setWithObjects:@"sin",@"cos",@"sqrt",@"+-", nil];
+    return [ operationSet containsObject:value];
+}
++(BOOL) isTwoOperandOperation: (NSString *)value {
+    NSSet *operationSet = [NSSet setWithObjects:@"+",@"-",@"*",@"/", nil];
+    return [ operationSet containsObject:value];
+}
++(BOOL) isOperation2:(NSString *)operation {
+    return 
+    [ self isNoOperandOrOperation:operation ] ||
+    [ self isOneOperandOperation:operation ] ||
+    [ self isTwoOperandOperation:operation ];
+}
+//----------------
++ (NSString *)descriptionOfTopOfStack:(NSMutableArray *)stack {
+    //similar cu popOperandOfStack
+    NSLog(@"parsing the description");
+    
+    NSString *description;
+    
+    id topOfStack = [ stack lastObject ];
+    if (topOfStack) [ stack removeLastObject]; else return @"";
+    
+    //daca e numar il lasam asa - il returnam ca si nsstring
+    if ([topOfStack isKindOfClass:[NSNumber class]]) {
+        return [topOfStack description ];
+    }
+    else if ([topOfStack isKindOfClass:[NSString class]]) {
+        //need to do some formatting
+        //daca este un no operand operation, sau daca e variabila, il lasam asa
+        if (![self isOperation:topOfStack] || [self isNoOperandOrOperation:topOfStack]) {
+            description = topOfStack;
+        }
+        //daca e doar 1 operand, sa facem ceva de genul f(x)
+        else if ([self isOneOperandOperation:topOfStack]) {
+            NSString *x=[ self deBracket:[self descriptionOfTopOfStack:stack]];
+            description = [NSString stringWithFormat:@"%@(%@)", topOfStack, x];
+        }
+        //daca e cu 2 operatii, atunci returnam ceva de genul a + b
+        else if ([self isTwoOperandOperation:topOfStack]) {
+            NSString *y = [self descriptionOfTopOfStack:stack];
+            NSString *x = [self descriptionOfTopOfStack:stack];
+            
+            // daca e + sau * trebuie sa luam in considerare precedenta
+            if ([topOfStack isEqualToString:@"+"] || [topOfStack isEqualToString:@"-"]) {
+                    description = [NSString stringWithFormat:@"(%@ %@ %@)",
+                                   [self deBracket:x], topOfStack, [self deBracket:y]];
+            }
+            // altfel avem deaface cu * sau /
+            else {
+                description = [ NSString stringWithFormat:@"%@ %@ %@", 
+                               x, topOfStack, y];
+            }
+        }
+    }
+    return  description;
+}
 //-----
 + (double)popOperandOffStack:(NSMutableArray *)stack
 {
@@ -147,6 +238,10 @@
     }
     //return nil if no variables
     if ([variables count] == 0) return nil; else return [variables copy];//interesting 
+}
+//----------------------------
+-(void)removeLastItem {
+    [self.programStack removeLastObject];
 }
 //------------------------------
 -(void) pushOperation:(NSString *)operation {

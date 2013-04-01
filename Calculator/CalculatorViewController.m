@@ -20,8 +20,10 @@
 @implementation CalculatorViewController
 @synthesize display = _display;
 @synthesize alldata = _alldata;
+@synthesize variables = _variables;
 @synthesize userIsInTheMiddleOfEnteringANumber = _userIsInTheMiddleOfEnteringANumber;
 @synthesize brain = _brain;
+@synthesize testVariableValues = _testVariableValues;
 
 // facem layy instantionation
 - (CalculatorBrain *) brain
@@ -59,9 +61,33 @@
         self.userIsInTheMiddleOfEnteringANumber = YES;
         }
     }
+//+++++++++++++++++++++
+
+//+++++++++++++++++++++
+- (IBAction)variablePressed:(UIButton *)sender {
+    [self.brain pushVariable:sender.currentTitle];
+    [self syncronizeView];
+}
+- (IBAction)undoPressed:(id)sender {
+    //daca introduce un numar, stergem ultima cifra
+    if (self.userIsInTheMiddleOfEnteringANumber) {
+        self.display.text = [self.display.text substringToIndex:[self.display.text length] - 1];
+        //daca nu am ramas cu nimic
+        if ( [self.display.text isEqualToString:@""] || 
+            [self.display.text isEqualToString:@"-"]) {
+            [self syncronizeView];
+        }
+    } else {
+        //remote last item from the stack and syncronize view
+        [self.brain removeLastItem];
+        [self syncronizeView];
+    }
+}
+
 //+++++++++++++++++++++++++++++++
 - (IBAction)enterPressed {
-    [ self.brain pushOperand:self.display.text];
+    double valoareApasata = [ self.display.text doubleValue];
+    [ self.brain pushOperand:valoareApasata];
     self.userIsInTheMiddleOfEnteringANumber = NO;// logic ca n umai sunt in mijlocul introducerii unui numar
 }//++++++++++++++++++++++++++
 - (IBAction)operationPressed:(UIButton *)sender 
@@ -72,6 +98,43 @@
     NSString *resultString = [ NSString stringWithFormat:@"%g", result ];
     self.display.text = resultString;
 }
+-(void) syncronizeView {
+    //find the result of the test case run
+    double result = [ CalculatorBrain runProgram:self.brain.program
+                             usingVariableValues:self.testVariableValues];
+    
+    //if result string, display it, else put number description
+    // if ([result isKindOfClass:[NSString class]]) {
+    //     self.display.text = result;
+    // }
+    //  else {
+    self.display.text = [NSString stringWithFormat:@"%g", result ];
+    // }
+    //now put the description of the program
+    self.alldata.text = [CalculatorBrain descriptionOfProgram:self.brain.program];
+    //dumping the variables
+    self.variables.text = [[self programVariableValues] description ];
+    //and the user is not in the middle of entering a number
+    self.userIsInTheMiddleOfEnteringANumber = NO;
+    
+}- (IBAction)test3Pressed:(id)sender {
+    self.testVariableValues = [NSDictionary dictionaryWithObjectsAndKeys:
+                               [NSNumber numberWithDouble:-4],@"x",
+                               [NSNumber numberWithDouble:3], @"a",
+                               [NSNumber numberWithDouble:4], @"b", nil];
+    [self syncronizeView];
+}
+- (IBAction)test4Pressed:(id)sender {
+    //one number provided
+    self.testVariableValues = [NSDictionary dictionaryWithObjectsAndKeys:
+                               [NSNumber numberWithDouble:-5], @"x", nil];
+    [self syncronizeView];
+}
+- (IBAction)testNilPressed:(id)sender {
+    self.testVariableValues = nil;
+    [self syncronizeView];
+}
+
 - (IBAction)testCase:(UIButton *)sender {
     
     //geting an instance of the brain
@@ -107,9 +170,40 @@
     NSLog(@"variables used in the program are: %@",
           [[CalculatorBrain variablesUsedInProgram:program] description]);
 }
+- (IBAction)testCaseForDescription:(id)sender {
+    CalculatorBrain *testBrain = [self brain];
+    
+    //test a
+    [testBrain pushOperand:3];
+    [testBrain pushOperand:5];
+    [testBrain pushOperand:6];
+    [testBrain pushOperand:7];
+    [testBrain pushOperation:@"+"];
+    [testBrain pushOperation:@"*"];
+    [testBrain pushOperation:@"-"];
+    
+    //test b
+    [testBrain pushOperand:3];
+    [testBrain pushOperand:5];
+    [testBrain pushOperation:@"+"];
+    [testBrain pushOperation:@"sqrt"];
+    
+    // print the description
+    NSLog(@"Program is: %@", [CalculatorBrain descriptionOfProgram:[testBrain program]]);
+    //Program is: sqrt(3 + 5),3 - 5 * (6 + 7)
+}
+//--------
+-(NSDictionary *) programVariableValues {
+    //find the variables
+    NSArray *variableArray = [[CalculatorBrain variablesUsedInProgram:self.brain.program] allObjects ];
+    //return description of fict with key->values
+    return [self.testVariableValues dictionaryWithValuesForKeys:variableArray];
+}
+
 
 - (void)viewDidUnload {
     [self setAlldata:nil];
+    [self setVariables:nil];
     [super viewDidUnload];
 }
 @end

@@ -10,10 +10,11 @@
 
 @interface CalculatorBrain : NSObject
 
-- (void)pushOperand:(NSString*)operand;//primim numere si variabile
+- (void)pushOperand:(double)operand;//primim numere si variabile
 - (double)performOperation:(NSString*) operation;
 - (void)pushVariable:(NSString *) variable;
 - (void)pushOperation:(NSString *)operation;
+-(void)removeLastItem;
 
 @property (readonly) id program;// ramane la fel	
 
@@ -24,5 +25,7 @@
 + (NSString *)descriptionOfProgram:(id)program; 
 
 + (NSSet *)variablesUsedInProgram:(id)program;
+
++ (NSString *)descriptionOfTopOfStack:(id)program;
 
 @end

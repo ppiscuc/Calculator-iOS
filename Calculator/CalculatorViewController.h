@@ -12,6 +12,8 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *display;
 @property (weak, nonatomic) IBOutlet UILabel *alldata;
+@property (weak, nonatomic) IBOutlet UILabel *variables;
+@property (weak, nonatomic ) IBOutlet NSDictionary *testVariableValues;
 
 @end
 	
